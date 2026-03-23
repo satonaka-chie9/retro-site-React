@@ -10,9 +10,18 @@ function Links({ isAdmin }) {
   const [newDesc, setNewDesc] = useState('');
 
   useEffect(() => {
-    fetch(`${API_BASE}/links`)
-      .then(res => res.json())
-      .then(setLinks);
+    const fetchLinks = () => {
+      fetch(`${API_BASE}/links?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setLinks(data);
+          } else {
+            setLinks([]);
+          }
+        });
+    };
+    fetchLinks();
   }, []);
 
   const handleAddLink = (e) => {
@@ -32,7 +41,7 @@ function Links({ isAdmin }) {
     })
       .then(res => res.json())
       .then(data => {
-        setLinks([...links, { id: data.id, ...newLink }]);
+        setLinks([...(Array.isArray(links) ? links : []), { id: data.id, ...newLink }]);
         setNewName('');
         setNewUrl('');
         setNewDesc('');
@@ -43,7 +52,7 @@ function Links({ isAdmin }) {
     if (window.confirm('このリンクを削除しますか？')) {
       fetch(`${API_BASE}/links/${id}`, { method: 'DELETE' })
         .then(() => {
-          setLinks(links.filter(link => link.id !== id));
+          setLinks((prevLinks) => Array.isArray(prevLinks) ? prevLinks.filter(link => link.id !== id) : []);
         });
     }
   };
@@ -85,7 +94,7 @@ function Links({ isAdmin }) {
           </tr>
         </thead>
         <tbody>
-          {links.map(link => (
+          {Array.isArray(links) && links.map(link => (
             <tr key={link.id}>
               <td style={{ border: '1px solid #00FF00', padding: '10px' }}>
                 <a href={link.url} target="_blank" rel="noopener noreferrer" style={{ color: '#00FF00', fontWeight: 'bold' }}>

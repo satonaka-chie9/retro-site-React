@@ -195,6 +195,20 @@ app.delete('/api/bans/:id', (req, res) => {
   });
 });
 
+app.get('/api/links', (req, res) => db.all("SELECT * FROM links ORDER BY id ASC", (err, rows) => res.json(rows || [])));
+app.post('/api/links', (req, res) => {
+  const { name, url, description } = req.body;
+  db.run("INSERT INTO links (name, url, description) VALUES (?, ?, ?)", [name, url, description], function(err) {
+    res.json({ id: this.lastID }); io.emit('links_update');
+  });
+});
+
+app.delete('/api/links/:id', (req, res) => {
+  db.run("DELETE FROM links WHERE id = ?", [req.params.id], () => {
+    res.json({ success: true }); io.emit('links_update');
+  });
+});
+
 // すべてのリクエストを index.html に流す (SPA用)
 app.get(/.*/, (req, res) => {
   if (!req.path.startsWith('/api')) {
