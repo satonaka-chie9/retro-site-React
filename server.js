@@ -181,6 +181,20 @@ app.delete('/api/claps/:id', (req, res) => {
   });
 });
 
+app.get('/api/bans', (req, res) => db.all("SELECT * FROM bans ORDER BY id ASC", (err, rows) => res.json(rows || [])));
+app.post('/api/bans', (req, res) => {
+  const { ip, reason, date } = req.body;
+  db.run("INSERT INTO bans (ip, reason, date) VALUES (?, ?, ?)", [ip, reason, date], function(err) {
+    res.json({ id: this.lastID }); io.emit('bans_update');
+  });
+});
+
+app.delete('/api/bans/:id', (req, res) => {
+  db.run("DELETE FROM bans WHERE id = ?", [req.params.id], () => {
+    res.json({ success: true }); io.emit('bans_update');
+  });
+});
+
 // すべてのリクエストを index.html に流す (SPA用)
 app.get(/.*/, (req, res) => {
   if (!req.path.startsWith('/api')) {

@@ -181,7 +181,7 @@ function App() {
           fetch(`${API_BASE}/bans?t=${Date.now()}`)
             .then(res => res.json())
             .then(banList => {
-              if (banList.some(item => item.ip === data.ip)) {
+              if (Array.isArray(banList) && banList.some(item => item.ip === data.ip)) {
                 setIsBanned(true);
               } else {
                 setIsBanned(false);
