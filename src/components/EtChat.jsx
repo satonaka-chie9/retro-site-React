@@ -52,6 +52,8 @@ function EtChat() {
     const canvas = canvasRef.current;
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(canvas.toDataURL());
+    // 履歴は最大20個まで
+    if (newHistory.length > 20) newHistory.shift();
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
   };
@@ -60,15 +62,27 @@ function EtChat() {
     if (historyIndex > 0) {
       const prevIndex = historyIndex - 1;
       setHistoryIndex(prevIndex);
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext('2d');
-      const img = new Image();
-      img.src = history[prevIndex];
-      img.onload = () => {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
-      };
+      loadHistory(prevIndex);
     }
+  };
+
+  const redo = () => {
+    if (historyIndex < history.length - 1) {
+      const nextIndex = historyIndex + 1;
+      setHistoryIndex(nextIndex);
+      loadHistory(nextIndex);
+    }
+  };
+
+  const loadHistory = (index) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.src = history[index];
+    img.onload = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+    };
   };
 
   const clearCanvas = () => {
@@ -92,10 +106,65 @@ function EtChat() {
     };
   };
 
+  // 塗りつぶし (簡易的なシードフィル)
+  const floodFill = (startX, startY, fillColor) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    const getPixel = (x, y) => {
+      const i = (y * canvas.width + x) * 4;
+      return [data[i], data[i+1], data[i+2], data[i+3]];
+    };
+
+    const targetColor = getPixel(Math.floor(startX), Math.floor(startY));
+    const fillRGB = hexToRgb(fillColor);
+
+    if (colorsMatch(targetColor, [fillRGB.r, fillRGB.g, fillRGB.b, 255])) return;
+
+    const stack = [[Math.floor(startX), Math.floor(startY)]];
+    while (stack.length > 0) {
+      const [x, y] = stack.pop();
+      const i = (y * canvas.width + x) * 4;
+
+      if (x >= 0 && x < canvas.width && y >= 0 && y < canvas.height && colorsMatch(getPixel(x, y), targetColor)) {
+        data[i] = fillRGB.r;
+        data[i+1] = fillRGB.g;
+        data[i+2] = fillRGB.b;
+        data[i+3] = 255;
+
+        stack.push([x + 1, y]);
+        stack.push([x - 1, y]);
+        stack.push([x, y + 1]);
+        stack.push([x, y - 1]);
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+  };
+
+  const hexToRgb = (hex) => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return { r, g, b };
+  };
+
+  const colorsMatch = (c1, c2) => {
+    return c1[0] === c2[0] && c1[1] === c2[1] && c1[2] === c2[2] && Math.abs(c1[3] - c2[3]) < 10;
+  };
+
   const startDrawing = (e) => {
     e.preventDefault();
-    setIsDrawing(true);
     const pos = getPos(e);
+    
+    if (tool === 'fill') {
+      floodFill(pos.x, pos.y, color);
+      saveHistory();
+      return;
+    }
+
+    setIsDrawing(true);
     startPos.current = pos;
     const canvas = canvasRef.current;
     snapshot.current = canvas.toDataURL();
@@ -130,10 +199,6 @@ function EtChat() {
         ctx.beginPath();
         if (tool === 'rect') {
           ctx.strokeRect(startPos.current.x, startPos.current.y, pos.x - startPos.current.x, pos.y - startPos.current.y);
-        } else if (tool === 'circle') {
-          const r = Math.sqrt(Math.pow(pos.x - startPos.current.x, 2) + Math.pow(pos.y - startPos.current.y, 2));
-          ctx.arc(startPos.current.x, startPos.current.y, r, 0, 2 * Math.PI);
-          ctx.stroke();
         } else if (tool === 'line') {
           ctx.moveTo(startPos.current.x, startPos.current.y);
           ctx.lineTo(pos.x, pos.y);
@@ -169,69 +234,129 @@ function EtChat() {
 
   return (
     <div className="etchat-container">
-      <h2>お絵描きチャット (Beta)</h2>
-      <div className="etchat-layout" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-        <div className="canvas-area">
-          <canvas
-            ref={canvasRef}
-            width="600"
-            height="400"
-            style={{ border: '2px solid #00FF00', background: '#FFF', cursor: 'crosshair', maxWidth: '100%' }}
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseOut={stopDrawing}
-            onTouchStart={startDrawing}
-            onTouchMove={draw}
-            onTouchEnd={stopDrawing}
-          />
-          <div className="controls" style={{ marginTop: '10px', display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <input type="color" value={color} onChange={(e) => setColor(e.target.value)} />
-            <select value={brushSize} onChange={(e) => setBrushSize(e.target.value)}>
-              {[1, 3, 5, 10, 20].map(s => <option key={s} value={s}>{s}px</option>)}
-            </select>
-            <select value={tool} onChange={(e) => setTool(e.target.value)}>
-              <option value="pen">ペン</option>
-              <option value="line">直線</option>
-              <option value="rect">四角</option>
-              <option value="circle">円</option>
-              <option value="eraser">消しゴム</option>
-            </select>
-            <button onClick={undo}>元に戻す</button>
-            <button onClick={clearCanvas}>全消去</button>
+      <h2 className="center_text">絵チャ (標準 Canvas API 版)</h2>
+      <div className="draw_chat_wrapper">
+        
+        {/* 🎨 描画エリア */}
+        <div className="draw_area">
+          <div className="controls">
+            <div className="control-group">
+              <span className="label">設定:</span>
+              <input 
+                type="color" 
+                value={color} 
+                onChange={(e) => setColor(e.target.value)} 
+                title="色を選択"
+              />
+              <input 
+                type="range" 
+                min="1" 
+                max="20" 
+                value={brushSize} 
+                onChange={(e) => setBrushSize(parseInt(e.target.value))} 
+                title="太さを調整"
+              />
+            </div>
+            
+            <div className="control-group">
+              <span className="label">ツール:</span>
+              <button 
+                className={`tool-btn ${tool === 'pen' ? 'active' : ''}`}
+                onClick={() => setTool('pen')}
+              >ペン</button>
+              <button 
+                className={`tool-btn ${tool === 'line' ? 'active' : ''}`}
+                onClick={() => setTool('line')}
+              >直線</button>
+              <button 
+                className={`tool-btn ${tool === 'rect' ? 'active' : ''}`}
+                onClick={() => setTool('rect')}
+              >四角</button>
+              <button 
+                className={`tool-btn ${tool === 'fill' ? 'active' : ''}`}
+                onClick={() => setTool('fill')}
+              >塗り</button>
+              <button 
+                className={`tool-btn ${tool === 'eraser' ? 'active' : ''}`}
+                onClick={() => setTool('eraser')}
+              >消しゴム</button>
+            </div>
+
+            <div className="control-group">
+              <span className="label">操作:</span>
+              <button onClick={undo} className="action-btn">戻る</button>
+              <button onClick={redo} className="action-btn">進む</button>
+              <button onClick={clearCanvas} className="action-btn danger">全消し</button>
+            </div>
+          </div>
+          
+          <div id="canvas-container" style={{ position: 'relative', display: 'inline-block', background: '#FFF', border: '2px solid #00FF00' }}>
+            <canvas 
+              ref={canvasRef}
+              width="600" 
+              height="500"
+              style={{ cursor: tool === 'fill' ? 'crosshair' : 'crosshair', display: 'block' }}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseOut={stopDrawing}
+              onTouchStart={startDrawing}
+              onTouchMove={draw}
+              onTouchEnd={stopDrawing}
+            ></canvas>
           </div>
         </div>
-        <div className="chat-area" style={{ flex: '1', minWidth: '250px', border: '1px solid #00FF00', display: 'flex', flexDirection: 'column', height: '480px' }}>
-          <div className="chat-messages" style={{ flex: '1', overflowY: 'auto', padding: '10px', background: '#001100', fontSize: '13px' }}>
+
+        {/* 💬 チャットエリア */}
+        <div className="chat_area">
+          <div className="operation_guide">
+            <p className="guide_title">絵チャとは</p>
+            <ul className="guide_list">
+              <li>絵チャとはチャットでお話をしながら絵を描く物です</li>
+              <li>昔の文化になりつつありますが現在もたまに見かけます</li>
+            </ul>
+            <p className="guide_title">【操作説明】</p>
+            <ul className="guide_list">
+              <li>ペン：マウスで自由描画</li>
+              <li>直線/四角：ドラッグで描画</li>
+              <li>塗り：クリックで塗りつぶし</li>
+              <li>戻る/進む：1つ前の状態を同期</li>
+              <li>全消し：キャンバスをリセット</li>
+            </ul>
+          </div>
+          
+          <div id="chat_messages">
             {messages.map((m, i) => (
-              <div key={i} style={{ marginBottom: '5px', borderBottom: '1px solid #003300' }}>
-                <span style={{ color: '#00FF00', fontWeight: 'bold' }}>{m.name}</span>
-                <span style={{ color: '#999', fontSize: '10px', marginLeft: '5px' }}>{m.time}</span><br />
-                <span>{m.text}</span>
+              <div key={i}>
+                <span className="chat-time">[{m.time}]</span>
+                <span className="chat-name">{m.name}:</span>
+                <span className="chat-text">{m.text}</span>
               </div>
             ))}
             <div ref={messagesEndRef} />
           </div>
-          <form onSubmit={handleSendChat} style={{ padding: '10px', background: '#000', borderTop: '1px solid #00FF00' }}>
-            <input
-              type="text"
-              value={chatName}
-              onChange={(e) => setChatName(e.target.value)}
+
+          <form id="chatForm" onSubmit={handleSendChat}>
+            <input 
+              type="text" 
+              value={chatName} 
+              onChange={(e) => setChatName(e.target.value)} 
               placeholder="名前"
-              style={{ width: '100%', marginBottom: '5px', background: '#222', color: '#FFF', border: '1px solid #444' }}
             />
-            <div style={{ display: 'flex', gap: '5px' }}>
-              <input
-                type="text"
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
+            <div className="chat-input-group">
+              <input 
+                type="text" 
+                value={chatInput} 
+                onChange={(e) => setChatInput(e.target.value)} 
                 placeholder="メッセージを入力..."
-                style={{ flex: '1', background: '#222', color: '#FFF', border: '1px solid #444' }}
+                required
+                style={{ flex: 1 }}
               />
-              <button type="submit">送信</button>
+              <input type="submit" value="送信" />
             </div>
           </form>
         </div>
+
       </div>
     </div>
   );
