@@ -1,0 +1,318 @@
+.bbs-container, .diary-container {
+  padding: 10px;
+}
+
+.posts-list, .diary-list {
+  margin-bottom: 30px;
+}
+
+.post-item, .diary-post {
+  margin-bottom: 30px;
+}
+
+.post-header, .diary-header {
+  background: #002200;
+  padding: 5px 10px;
+  border: 1px solid #00FF00;
+  font-size: 0.9em;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.post-title, .diary-title {
+  font-weight: bold;
+  color: #00FF00;
+  margin: 0;
+}
+
+.post-name {
+  color: #00FF00;
+}
+
+.post-date, .diary-date {
+  font-size: 0.8em;
+  color: #00CC00;
+}
+
+.post-content, .diary-body {
+  padding: 15px;
+  border-left: 1px solid #00FF00;
+  border-right: 1px solid #00FF00;
+  border-bottom: 1px solid #00FF00;
+  background: #050505;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.post-divider, .diary-divider {
+  border: 0;
+  border-top: 1px dashed #004400;
+  margin: 20px 0;
+}
+
+.form-container {
+  border: 2px solid #00FF00;
+  padding: 20px;
+  background: #001100;
+  margin-top: 20px;
+}
+
+.form-container h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #00FF00;
+  padding-bottom: 5px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: inline-block;
+  width: 80px;
+  vertical-align: top;
+}
+
+.form-group input {
+  padding: 5px;
+  background: #000;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+}
+
+.form-group textarea {
+  margin-top: 5px;
+  padding: 5px;
+  resize: vertical;
+  background: #000;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+}
+
+.form-submit button {
+  padding: 5px 20px;
+  font-weight: bold;
+}
+
+.admin-input {
+  width: 100px;
+  margin-bottom: 5px;
+}
+
+.admin-msg-small {
+  font-size: 11px;
+  color: #FF3333;
+  margin-top: 5px;
+}
+
+/* 絵チャ用スタイル */
+.draw_chat_wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+@media (min-width: 1000px) {
+  .draw_chat_wrapper {
+    flex-direction: row;
+  }
+}
+
+.draw_area {
+  flex: 1;
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  background: #001100;
+  padding: 10px;
+  border: 1px solid #00FF00;
+  margin-bottom: 10px;
+  font-size: 12px;
+}
+
+.control-group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.label {
+  color: #00FF00;
+  font-weight: bold;
+}
+
+.tool-btn, .action-btn {
+  background: #002200;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 11px;
+}
+
+.tool-btn.active {
+  background: #00FF00;
+  color: #000;
+}
+
+.action-btn.danger {
+  border-color: #FF0000;
+  color: #FF0000;
+}
+
+.chat_area {
+  width: 100%;
+  max-width: 320px;
+  background: #001100;
+  border: 2px solid #00FF00;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+#chat_messages {
+  height: 300px;
+  overflow-y: scroll;
+  border: 1px inset #00FF00;
+  padding: 8px;
+  margin-bottom: 15px;
+  background: #050505;
+  font-family: monospace;
+}
+
+#chat_messages div {
+  padding: 4px 0;
+  border-bottom: 1px dotted #004400;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.chat-time {
+  color: #009900;
+  font-size: 0.85em;
+  margin-right: 5px;
+}
+
+.chat-name {
+  color: #00FF00;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.chat-text {
+  color: #CCFFCC;
+}
+
+#chatForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-input-group {
+  display: flex;
+  gap: 5px;
+}
+
+.chat-input-group input[type="text"] {
+  background: #000;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+  padding: 3px;
+}
+
+.operation_guide {
+  font-size: 11px;
+  margin-bottom: 10px;
+  border-bottom: 1px dashed #00FF00;
+}
+
+.guide_title {
+  color: #00FF00;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.guide_list {
+  padding-left: 15px;
+  margin: 5px 0;
+  list-style-type: none;
+}
+
+.guide_list li {
+  margin-bottom: 3px;
+}
+
+/* 拍手モーダル */
+.clap-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.clap-modal {
+  background: #001100;
+  border: 2px solid #00FF00;
+  padding: 20px;
+  width: 90%;
+  max-width: 400px;
+  color: #00FF00;
+  box-shadow: 0 0 15px #00FF00;
+}
+
+.clap-modal h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #00FF00;
+  padding-bottom: 10px;
+}
+
+.clap-modal p {
+  font-size: 12px;
+}
+
+.center_text {
+  text-align: center;
+}
+
+/* トップページ投稿フォーム */
+.news-post-area {
+  border: 1px dashed #00FF00;
+  padding: 10px;
+  margin-bottom: 20px;
+  background: #001100;
+}
+
+.news-post-label {
+  font-size: 12px;
+  color: #00FF00;
+  margin-bottom: 5px;
+}
+
+.news-textarea {
+  width: 100%;
+  height: 60px;
+  background: #000;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+  padding: 5px;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+

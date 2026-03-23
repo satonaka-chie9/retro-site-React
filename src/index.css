@@ -1,0 +1,194 @@
+body {
+  margin: 0;
+  background: #000;
+  color: #00FF00;
+  font: 14px/1.4 "MS UI Gothic", monospace;
+}
+
+.title {
+  text-align: center;
+  margin: 20px 0;
+}
+
+hr {
+  border: 1px solid #00FF00;
+}
+
+.layout {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.side_menu {
+  width: 200px;
+  flex-shrink: 0;
+  border-right: 2px solid #00FF00;
+  padding-right: 15px;
+}
+
+.side_menu a {
+  display: block;
+  border: 2px solid #00FF00;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+  text-decoration: none;
+  color: #00FF00;
+  background: #0c0c0c;
+  cursor: pointer;
+}
+
+.side_menu a:hover {
+  background: #003300;
+}
+
+.menu_title {
+  margin-top: 20px;
+}
+
+.counter {
+  font-family: "Courier New", monospace;
+  font-size: 20px;
+  border: 2px solid #00FF00;
+  padding: 5px 10px;
+  display: inline-block;
+}
+
+.main_content {
+  flex: 1;
+  max-width: 1300px;
+  min-width: 0;
+}
+
+input, textarea {
+  background: #000;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+  font-family: "MS UI Gothic", monospace;
+}
+
+button {
+  background: #000;
+  color: #00FF00;
+  border: 2px solid #00FF00;
+  font-family: "MS UI Gothic", monospace;
+  font-size: 13px;
+  padding: 2px 8px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #003300;
+}
+
+button:active {
+  background: #00FF00;
+  color: #000;
+}
+
+.hidden {
+  display: none;
+}
+
+.news-section {
+  margin-top: 20px;
+  border: 1px double #00FF00;
+  padding: 15px;
+  background-color: #111;
+}
+
+.news-section h3 {
+  color: #00FF00;
+  margin-top: 0;
+  border-bottom: 1px solid #00FF00;
+}
+
+.news-post-area {
+  /* display: none; */ /* Initially hidden in original, but we show it for the static clone */
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #444;
+}
+
+.news-post-label {
+  color: #00FF00;
+  font-size: 0.9em;
+  margin-top: 0;
+}
+
+.news-textarea {
+  width: 100%;
+  height: 60px;
+  background-color: #222;
+  color: #00FF00;
+  border: 1px solid #00FF00;
+  font-family: monospace;
+}
+
+.news-loading {
+  color: #888;
+}
+
+.mt-5 {
+  margin-top: 5px;
+}
+
+.admin-input {
+  width: 80px;
+  margin-bottom: 5px;
+}
+.admin-msg-small {
+  font-size: 12px;
+  color: #FF0000;
+  margin-top: 5px;
+}
+.admin-login-status {
+  color: #00FF00;
+  font-size: 12px;
+}
+.admin-manage-link {
+  display: block;
+  color: #00FF00;
+  margin-bottom: 10px;
+}
+.clap-btn-container {
+  margin-top: 30px;
+  border-top: 1px dashed #00FF00;
+}
+.clap-count-display {
+  display: block;
+  text-align: center;
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+  color: #00FF00;
+  margin-bottom: 5px;
+  background: #111;
+  border: 1px solid #00FF00;
+  padding: 2px;
+}
+.clap-btn {
+  display: block;
+  border: 2px solid #00FF00;
+  padding: 5px 10px;
+  margin-top: 10px;
+  text-decoration: none;
+  color: #00FF00;
+  background: #0c0c0c;
+  font-weight: bold;
+  text-align: center;
+  font-size: 13px;
+}
+.clap-btn:hover {
+  background: #003300;
+}
+
+#clap-overlay, #clap-modal {
+    /* For now, we are not implementing the modal, so we hide it */
+    display: none;
+}
