@@ -8,6 +8,9 @@ primary_region = 'nrt'
 
 [build]
   dockerfile = "Dockerfile.production"
+  [build.args]
+    VITE_ADMIN_USER = "chie"
+    VITE_ADMIN_PASS = "chie9696"
 
 [http_service]
   internal_port = 80
