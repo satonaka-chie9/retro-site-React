@@ -15,8 +15,8 @@ const API_BASE = '/api';
 const socket = io();
 
 const HomePage = ({ isAdmin }) => {
-  const [news, setNews] = useState([]);
-  const [status, setStatus] = useState([]);
+  const [news, setNews] = useState(null);
+  const [status, setStatus] = useState(null);
   const [newNews, setNewNews] = useState('');
   const [newStatus, setNewStatus] = useState('');
 
@@ -48,7 +48,7 @@ const HomePage = ({ isAdmin }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newItem)
     }).then(res => res.json()).then(data => {
-      setNews([...news, { id: data.id, ...newItem }]);
+      setNews([...(news || []), { id: data.id, ...newItem }]);
       setNewNews('');
     });
   };
@@ -65,7 +65,7 @@ const HomePage = ({ isAdmin }) => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newItem)
     }).then(res => res.json()).then(data => {
-      setStatus([...status, { id: data.id, ...newItem }]);
+      setStatus([...(status || []), { id: data.id, ...newItem }]);
       setNewStatus('');
     });
   };
@@ -107,8 +107,10 @@ const HomePage = ({ isAdmin }) => {
         )}
 
         <div id="news-list">
-          {news.length === 0 ? (
+          {news === null ? (
             <p className="news-loading">読み込み中...</p>
+          ) : news.length === 0 ? (
+            <p className="news-loading">投稿がありません</p>
           ) : (
             news.map(item => (
               <div key={item.id} className="post">
@@ -140,8 +142,10 @@ const HomePage = ({ isAdmin }) => {
         )}
 
         <div id="status-list">
-          {status.length === 0 ? (
+          {status === null ? (
             <p className="news-loading">読み込み中...</p>
+          ) : status.length === 0 ? (
+            <p className="news-loading">投稿がありません</p>
           ) : (
             status.map(item => (
               <div key={item.id} className="post">
