@@ -310,7 +310,7 @@ function EtChat() {
 
   return (
     <div className="etchat-container">
-      <h2 className="center_text">絵チャ</h2>
+      <h2>絵チャ</h2>
       <div className="draw_chat_wrapper">
         
         {/* 🎨 描画エリア */}
