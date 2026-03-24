@@ -53,6 +53,21 @@ db.serialize(() => {
 // Socket.io
 io.on('connection', (socket) => {
   console.log('Client connected:', socket.id);
+  
+  // 描画イベントの同期
+  socket.on('draw_event', (data) => {
+    socket.broadcast.emit('draw_event', data);
+  });
+
+  // キャンバス全体の同期 (Undo/Redo/Clear/参加時など)
+  socket.on('canvas_sync', (data) => {
+    socket.broadcast.emit('canvas_sync', data);
+  });
+
+  socket.on('request_canvas', () => {
+    socket.broadcast.emit('request_canvas');
+  });
+
   socket.on('disconnect', () => console.log('Client disconnected:', socket.id));
 });
 

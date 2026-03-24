@@ -20,6 +20,7 @@ function EtChat() {
   const [chatInput, setChatInput] = useState('');
 
   const startPos = useRef({ x: 0, y: 0 });
+  const lastPos = useRef({ x: 0, y: 0 });
   const snapshot = useRef(null);
 
   const fetchMessages = () => {
@@ -37,7 +38,51 @@ function EtChat() {
     fetchMessages();
 
     socket.on('etchat_update', fetchMessages);
-    return () => socket.off('etchat_update');
+    
+    // 他のユーザーの描画を受信
+    socket.on('draw_event', (data) => {
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      if (data.tool === 'pen' || data.tool === 'eraser') {
+        ctx.strokeStyle = data.tool === 'eraser' ? '#FFFFFF' : data.color;
+        ctx.lineWidth = data.brushSize;
+        ctx.beginPath();
+        ctx.moveTo(data.prevX, data.prevY);
+        ctx.lineTo(data.x, data.y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    });
+
+    // キャンバス全体の同期を受信 (Undo/Redo/Clear/参加時)
+    socket.on('canvas_sync', (dataURL) => {
+      const img = new Image();
+      img.src = dataURL;
+      img.onload = () => {
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+        saveHistory(); // 他人の変更も一応履歴に入れる
+      };
+    });
+
+    // 参加時に最新のキャンバスを要求
+    socket.on('request_canvas', () => {
+      socket.emit('canvas_sync', canvasRef.current.toDataURL());
+    });
+
+    socket.emit('request_canvas');
+
+    return () => {
+      socket.off('etchat_update');
+      socket.off('draw_event');
+      socket.off('canvas_sync');
+      socket.off('request_canvas');
+    };
   }, []);
 
   useEffect(() => {
@@ -48,21 +93,27 @@ function EtChat() {
     localStorage.setItem('retro-site-user-name', chatName);
   }, [chatName]);
 
-  const saveHistory = () => {
+  const saveHistory = (noSync = false) => {
     const canvas = canvasRef.current;
+    const dataURL = canvas.toDataURL();
     const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(canvas.toDataURL());
+    newHistory.push(dataURL);
     // 履歴は最大20個まで
     if (newHistory.length > 20) newHistory.shift();
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
+    
+    if (!noSync) {
+      // 変更があったら同期
+      // socket.emit('canvas_sync', dataURL); // ここでやると重い可能性があるので、特定のタイミングにする
+    }
   };
 
   const undo = () => {
     if (historyIndex > 0) {
       const prevIndex = historyIndex - 1;
       setHistoryIndex(prevIndex);
-      loadHistory(prevIndex);
+      loadHistory(prevIndex, true);
     }
   };
 
@@ -70,11 +121,11 @@ function EtChat() {
     if (historyIndex < history.length - 1) {
       const nextIndex = historyIndex + 1;
       setHistoryIndex(nextIndex);
-      loadHistory(nextIndex);
+      loadHistory(nextIndex, true);
     }
   };
 
-  const loadHistory = (index) => {
+  const loadHistory = (index, shouldSync = false) => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     const img = new Image();
@@ -82,6 +133,9 @@ function EtChat() {
     img.onload = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
+      if (shouldSync) {
+        socket.emit('canvas_sync', history[index]);
+      }
     };
   };
 
@@ -91,7 +145,9 @@ function EtChat() {
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#FFFFFF';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      const dataURL = canvas.toDataURL();
       saveHistory();
+      socket.emit('canvas_sync', dataURL);
     }
   };
 
@@ -141,6 +197,9 @@ function EtChat() {
       }
     }
     ctx.putImageData(imageData, 0, 0);
+    const dataURL = canvas.toDataURL();
+    saveHistory();
+    socket.emit('canvas_sync', dataURL);
   };
 
   const hexToRgb = (hex) => {
@@ -160,12 +219,12 @@ function EtChat() {
     
     if (tool === 'fill') {
       floodFill(pos.x, pos.y, color);
-      saveHistory();
       return;
     }
 
     setIsDrawing(true);
     startPos.current = pos;
+    lastPos.current = pos;
     const canvas = canvasRef.current;
     snapshot.current = canvas.toDataURL();
 
@@ -188,6 +247,18 @@ function EtChat() {
       ctx.lineWidth = brushSize;
       ctx.lineTo(pos.x, pos.y);
       ctx.stroke();
+
+      // 同期用イベント送信
+      socket.emit('draw_event', {
+        tool,
+        x: pos.x,
+        y: pos.y,
+        prevX: lastPos.current.x,
+        prevY: lastPos.current.y,
+        color,
+        brushSize
+      });
+      lastPos.current = pos;
     } else {
       const img = new Image();
       img.src = snapshot.current;
@@ -211,7 +282,12 @@ function EtChat() {
   const stopDrawing = () => {
     if (isDrawing) {
       setIsDrawing(false);
+      const canvas = canvasRef.current;
+      const dataURL = canvas.toDataURL();
       saveHistory();
+      
+      // 図形描画や、ペン描画終了時の確実な同期
+      socket.emit('canvas_sync', dataURL);
     }
   };
 
@@ -234,7 +310,7 @@ function EtChat() {
 
   return (
     <div className="etchat-container">
-      <h2 className="center_text">絵チャ (標準 Canvas API 版)</h2>
+      <h2 className="center_text">絵チャ</h2>
       <div className="draw_chat_wrapper">
         
         {/* 🎨 描画エリア */}
