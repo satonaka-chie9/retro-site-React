@@ -9,12 +9,13 @@ import AdminIPBan from './components/AdminIPBan.jsx';
 import Profile from './components/Profile.jsx';
 import Links from './components/Links.jsx';
 import Specs from './components/Specs.jsx';
+import ClapDisplay from './components/ClapDisplay.jsx';
 import { io } from 'socket.io-client';
 
 const API_BASE = '/api';
 const socket = io();
 
-const HomePage = ({ isAdmin }) => {
+const HomePage = ({ isAdmin, setPage }) => {
   const [news, setNews] = useState(null);
   const [status, setStatus] = useState(null);
   const [newNews, setNewNews] = useState('');
@@ -85,7 +86,9 @@ const HomePage = ({ isAdmin }) => {
   return (
     <>
       <p>管理人の空門チエです。ふと昔のサイトを再現してみたくて作ってみました。</p>
-      <p>フロントエンドはレトロでバックエンドはモダンを意識して作成しました</p>
+      <p>フロントエンドはレトロでバックエンドはモダンを意識して作成しました。</p>
+      <p>以前HTMLとJSで作成しましたが読み込みで時間がかかってUXが悪いと感じたのでreactに移植してみました。</p>
+      <p>ただし、SEOはあきらめてサイトの見た目とセキュリティを優先しました。詳しくは<a href="#" onClick={(e) => { e.preventDefault(); setPage('specs'); }}>サイトの仕様</a>を見てね！<br /></p>
       <p>みんな仲良くね！</p>
       <hr />
       
@@ -159,6 +162,8 @@ const HomePage = ({ isAdmin }) => {
           )}
         </div>
       </div>
+      
+      <ClapDisplay />
     </>
   );
 };
@@ -210,7 +215,7 @@ function App() {
       );
     }
     switch (page) {
-      case 'home': return <HomePage isAdmin={isAdmin} />;
+      case 'home': return <HomePage isAdmin={isAdmin} setPage={setPage} />;
       case 'bbs': return <BBS isAdmin={isAdmin} />;
       case 'blog': return <Blog isAdmin={isAdmin} />;
       case 'etchat': return <EtChat />;
