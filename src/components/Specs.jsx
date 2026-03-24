@@ -15,7 +15,6 @@ function Specs() {
           </tr>
           <tr>
             <td style={{ verticalAlign: 'top' }}>
-              <img src={profileImage} alt="プロフィール画像" className="profile_image" style={{ maxWidth: '200px', border: '2px solid #00FF00' }} />
             </td>
             <td>
               <table className="profile_box" style={{ borderCollapse: 'collapse', textAlign: 'left' }}>
