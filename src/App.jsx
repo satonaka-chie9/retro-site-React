@@ -9,6 +9,7 @@ import AdminIPBan from './components/AdminIPBan.jsx';
 import Profile from './components/Profile.jsx';
 import Links from './components/Links.jsx';
 import Specs from './components/Specs.jsx';
+import ClapDisplay from './components/ClapDisplay.jsx';
 import { io } from 'socket.io-client';
 
 const API_BASE = '/api';
@@ -159,6 +160,8 @@ const HomePage = ({ isAdmin }) => {
           )}
         </div>
       </div>
+      
+      <ClapDisplay />
     </>
   );
 };
