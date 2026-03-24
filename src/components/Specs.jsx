@@ -14,8 +14,6 @@ function Specs() {
             </td>
           </tr>
           <tr>
-            <td style={{ verticalAlign: 'top' }}>
-            </td>
             <td>
               <table className="profile_box" style={{ borderCollapse: 'collapse', textAlign: 'left' }}>
                 <tbody>
